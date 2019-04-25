@@ -1,0 +1,61 @@
+C# ACCESS的Ole对象读写操作 (2013-04-23 15:26:21)
+分类： 数据库
+******* OleDbConnection conn;
+public Form1()
+{
+InitializeComponent();
+conn = new OleDbConnection();
+conn.ConnectionString = @"Provider=Microsoft.Jet.OLEDB.4.0; Data Source=d:\Database1.mdb";
+conn.Open();
+}
+//it is for storing a file into database
+******* void button1_Click(object sender, EventArgs e)
+{
+if (openFileDialog1.ShowDialog() == DialogResult.OK)
+{ 
+FileStream fs = new FileStream(openFileDialog1.FileName, FileMode.Open, FileAccess.Read);
+Byte[] buff = new Byte[fs.Length];
+BinaryReader rd = new BinaryReader(fs);
+rd.Read(buff, 0, Convert.ToInt32(fs.Length));
+OleDbCommand command = new OleDbCommand("INSERT INTO 表1 ([object], path) VALUES(@object, @path)", conn);
+command.Parameters.Add("@object", OleDbType.Binary, buff.Length).Value = buff;
+command.Parameters.Add("@path", OleDbType.Char, 255).Value = openFileDialog1.FileName;
+command.ExecuteNonQuery();
+rd.Close();
+fs.Close();
+}
+}
+******* void Form1_FormClosed(object sender, FormClosedEventArgs e)
+{
+conn.Close();
+}
+//it is for reading the data from the database and store it to a file
+******* void button2_Click(object sender, EventArgs e)
+{
+OleDbCommand command = new OleDbCommand("SELECT [object], path FROM 表1", conn);
+OleDbDataReader dr = command.ExecuteReader();
+FileStream fs;
+BinaryWriter writer;
+int bufferSize = 100;
+byte[] outByte = new byte[bufferSize]; 
+while(dr.Read())
+{
+string filename = dr.GetString(1);
+fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write);
+writer = new BinaryWriter(fs);
+int startIndex = 0;
+long retval = dr.GetBytes(0, startIndex, outByte, 0, bufferSize);
+while (retval == bufferSize)
+{
+writer.Write(outByte);
+writer.Flush();
+startIndex += bufferSize;
+retval = dr.GetBytes(0, startIndex, outByte, 0, bufferSize);
+}
+writer.Write(outByte, 0, (int)retval - 1);
+writer.Flush();
+writer.Close();
+fs.Close();
+}
+dr.Close();
+}

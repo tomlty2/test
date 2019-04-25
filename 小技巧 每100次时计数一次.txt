@@ -1,0 +1,9 @@
+
+int iCount=0;
+                        //int intThisJS = int.Parse(thisJS.ToString());
+                        //int intThisJS_100 = intThisJS/ 100;
+                        //double dblDelta = Math.Abs(intThisJS_100 * 100 - thisJS);
+                        //if (dblDelta < 0.01)
+                        //{
+                        //    iCount = iCount + 1;//每100米井深，计数一次。 
+                        //}
